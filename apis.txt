@@ -1,0 +1,4 @@
+https://developers.google.com/qpx-express/v1/requests#Examples
+https://github.com/Skyscanner/skyscanner-python-sdk
+https://github.com/mayanez/flight_scraper
+https://pypi.python.org/pypi/amadeus/0.1.2
