@@ -1,9 +1,11 @@
 """ Python client to use for requesting Google's QPX Express API. """
-from __future__ import absolute_import, print_function
+from __future__ import unicode_literals, absolute_import, generators, \
+    print_function
 
 import requests
 import json
 import re
+from datetime import datetime
 
 
 class QPXExpressApi(object):
@@ -129,9 +131,22 @@ class QPXResponse(object):
             self.sort_by_duration()
         top_flights = []
         for flight in self.flight_options[:num]:
-            flight_info = {'total_price': flight.get('saleTotal'),
-                           'total_duration': flight['slice'][0]['duration'],
-                           'total_hours': flight['slice'][0]['duration'] / 60.0,
+            flight_info = {'price': re.search(r'[\d.]+',
+                                              flight.get('saleTotal')).group(),
+                           'currency': re.search(r'[^\d.]+',
+                                                 flight.get(
+                                                     'saleTotal')).group(),
+                           'duration': flight['slice'][0]['duration'],
+                           'duration_hours': flight['slice'][0][
+                               'duration'] / 60.0,
+                           'departure': datetime.strptime(
+                               flight['slice'][0]['segment'][0][
+                                   'leg'][0]['departureTime'][:15],
+                               '%Y-%m-%dT%H:%S'),
+                           'arrival': datetime.strptime(
+                               flight['slice'][0]['segment'][-1][
+                                   'leg'][0]['arrivalTime'][:15],
+                               '%Y-%m-%dT%H:%S'),
                            'legs': []}
             for segment in flight['slice'][0]['segment']:
                 flight_info['legs'].append({
@@ -144,5 +159,7 @@ class QPXResponse(object):
                                        segment.keys() else segment['duration'])(
                                            'connectionDuration')
                 })
+            flight_info['carrier'] = ', '.join(set([c.get('carrier') for c in
+                                                    flight_info['legs']]))
             top_flights.append(flight_info)
         return top_flights

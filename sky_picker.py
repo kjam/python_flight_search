@@ -1,4 +1,7 @@
 """ Classes and examples for searching for flights using SkyPicker. """
+from __future__ import unicode_literals, absolute_import, generators, \
+    print_function
+
 import requests
 from datetime import datetime
 
@@ -57,17 +60,17 @@ class SkyPickerApi(object):
             flight_info = {
                 'departure': datetime.utcfromtimestamp(flight.get('dTimeUTC')),
                 'arrival': datetime.utcfromtimestamp(flight.get('aTimeUTC')),
-                'price': '{} {}'.format(flight.get('price'),
-                                        resp.get('currency')),
-                'route': []
+                'price': flight.get('price'),
+                'currency': resp.get('currency'),
+                'legs': []
             }
             flight_info['duration'] = flight_info['arrival'] - \
                 flight_info['departure']
             flight_info['duration_hours'] = (flight_info[
                 'duration'].total_seconds() / 60.0) / 60.0
             for route in flight['route']:
-                flight_info['route'].append({
-                    'airline': route['airline'],
+                flight_info['legs'].append({
+                    'carrier': route['airline'],
                     'departure': datetime.utcfromtimestamp(
                         route.get('dTimeUTC')),
                     'arrival': datetime.utcfromtimestamp(
@@ -76,5 +79,7 @@ class SkyPickerApi(object):
                                              route['flyFrom']),
                     'to': '{} ({})'.format(route['cityTo'], route['flyTo']),
                 })
+            flight_info['carrier'] = ', '.join(set([c.get('carrier') for c
+                                                    in flight_info['legs']]))
             flights.append(flight_info)
         return flights
